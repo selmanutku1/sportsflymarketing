@@ -13,6 +13,7 @@ import type {
 import { formatDateTR, formatNumberTR, formatTRY } from '../utils/formatters';
 import {
   PROPOSAL_FORMAT_OPTIONS,
+  SPORTSFLY_BRANCHES_STRIP_URL,
   SPORTSFLY_LOGO_URL,
   type ProposalFormat,
 } from '../utils/proposalPdfGenerator';
@@ -134,13 +135,44 @@ export function ProposalPreviewModal({
   );
 
   const PageFooter = () => (
-    <div className="mt-8 pt-4 border-t border-[#e4e9f2] flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
-      <span>
-        SportsFly Bilişim Teknolojileri · {clubName} için özel hazırlanmıştır · {dateStr}
-      </span>
-      <span className="text-[#091124] font-semibold tabular-nums">
-        0216 850 19 07 · www.sportsfly.com.tr
-      </span>
+    <div className="mt-7">
+      <div className="pt-4 border-t border-[#e4e9f2]">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-3.5 rounded-[2px] bg-[#b9f33d] ring-1 ring-[#091124]/15 shrink-0" />
+            <span className="text-[10px] sm:text-[11px] font-bold tracking-wide text-[#091124]">
+              TÜM SPOR BRANŞLARI İÇİN TEK YÖNETİM PLATFORMU
+            </span>
+          </div>
+          <span className="text-[10px] font-medium text-slate-500">
+            20+ branşta aktif akademi &amp; kulüp altyapısı
+          </span>
+        </div>
+        <div className="relative rounded-[10px] overflow-hidden bg-white">
+          <img
+            src={SPORTSFLY_BRANCHES_STRIP_URL}
+            alt="SportsFly desteklenen spor branşları şeridi"
+            className="w-full h-auto block"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-0 w-7 bg-gradient-to-r from-white/75 to-transparent"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-white/75 to-transparent"
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-[#e4e9f2] flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+        <span>
+          SportsFly Bilişim Teknolojileri · {clubName} için özel hazırlanmıştır · {dateStr}
+        </span>
+        <span className="text-[#091124] font-semibold tabular-nums">
+          0216 850 19 07 · www.sportsfly.com.tr
+        </span>
+      </div>
     </div>
   );
 

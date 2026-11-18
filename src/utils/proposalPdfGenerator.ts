@@ -13,6 +13,7 @@ import type {
 import { formatDateTR, formatNumberTR, formatTRY } from './formatters';
 
 export const SPORTSFLY_LOGO_URL = '/assets/aistudio/images__1__e22ba1d6.jpg';
+export const SPORTSFLY_BRANCHES_STRIP_URL = '/assets/aistudio/image_2ec51efb.png';
 
 export type ProposalFormat = '1-sayfa' | '2-sayfa' | '3-sayfa';
 
@@ -221,6 +222,58 @@ function drawPageHeader(
   ctx.stroke();
 }
 
+function drawBranchesStrip(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  stripImage: HTMLImageElement | null
+) {
+  if (!stripImage || !stripImage.naturalWidth || !stripImage.naturalHeight) return;
+
+  const marginX = 80;
+  const contentW = width - marginX * 2; // 1080
+  const stripH = Math.round(contentW * (stripImage.naturalHeight / stripImage.naturalWidth)); // ~303px
+  const stripY = height - 88 - stripH; // 1666 - 303 = 1363
+
+  // İnce ayırıcı çizgi ve başlık şeridi
+  ctx.strokeStyle = BRAND_BORDER;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(marginX, stripY - 34);
+  ctx.lineTo(width - marginX, stripY - 34);
+  ctx.stroke();
+
+  fillRoundedRect(ctx, marginX, stripY - 22, 6, 14, 3, BRAND_LIME, 'rgba(9,17,36,0.18)', 1);
+  ctx.fillStyle = BRAND_NAVY;
+  ctx.font = `700 11px ${FONT_SANS}`;
+  ctx.fillText('TÜM SPOR BRANŞLARI İÇİN TEK YÖNETİM PLATFORMU', marginX + 14, stripY - 11);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = BRAND_MUTED;
+  ctx.font = `500 11px ${FONT_SANS}`;
+  ctx.fillText('20+ branşta aktif akademi & kulüp altyapısı', width - marginX, stripY - 11);
+  ctx.textAlign = 'left';
+
+  ctx.save();
+  traceRoundedRect(ctx, marginX, stripY, contentW, stripH, 10);
+  ctx.clip();
+  ctx.drawImage(stripImage, marginX, stripY, contentW, stripH);
+
+  // Dış kenarların beyaz sayfayla yumuşak birleşmesi için hafif yan geçiş
+  const leftFade = ctx.createLinearGradient(marginX, 0, marginX + 36, 0);
+  leftFade.addColorStop(0, 'rgba(255,255,255,0.65)');
+  leftFade.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = leftFade;
+  ctx.fillRect(marginX, stripY, 36, stripH);
+
+  const rightFade = ctx.createLinearGradient(width - marginX - 36, 0, width - marginX, 0);
+  rightFade.addColorStop(0, 'rgba(255,255,255,0)');
+  rightFade.addColorStop(1, 'rgba(255,255,255,0.65)');
+  ctx.fillStyle = rightFade;
+  ctx.fillRect(width - marginX - 36, stripY, 36, stripH);
+  ctx.restore();
+}
+
 function drawPageFooter(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -232,8 +285,8 @@ function drawPageFooter(
   ctx.strokeStyle = BRAND_BORDER;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(marginX, height - 84);
-  ctx.lineTo(width - marginX, height - 84);
+  ctx.moveTo(marginX, height - 74);
+  ctx.lineTo(width - marginX, height - 74);
   ctx.stroke();
 
   ctx.fillStyle = BRAND_MUTED;
@@ -241,13 +294,13 @@ function drawPageFooter(
   ctx.fillText(
     `SportsFly Bilişim Teknolojileri · ${clubName} için özel hazırlanmıştır · ${dateStr}`,
     marginX,
-    height - 52
+    height - 44
   );
 
   ctx.textAlign = 'right';
   ctx.fillStyle = BRAND_NAVY;
   ctx.font = `600 13px ${FONT_SANS}`;
-  ctx.fillText('0216 850 19 07 · www.sportsfly.com.tr', width - marginX, height - 52);
+  ctx.fillText('0216 850 19 07 · www.sportsfly.com.tr', width - marginX, height - 44);
   ctx.textAlign = 'left';
 }
 
@@ -478,6 +531,7 @@ function drawSummaryAndRulesBlock(
 // ---------------------------------------------------------------------------
 function buildOnePageProposal(params: {
   logo: HTMLImageElement | null;
+  branchesStrip: HTMLImageElement | null;
   quote: Quote;
   club?: Club;
   contact?: Contact;
@@ -489,8 +543,20 @@ function buildOnePageProposal(params: {
   dateStr: string;
   validUntilStr: string;
 }): PageCanvas[] {
-  const { logo, quote, club, contact, owner, pkg, tier, modules, clubName, dateStr, validUntilStr } =
-    params;
+  const {
+    logo,
+    branchesStrip,
+    quote,
+    club,
+    contact,
+    owner,
+    pkg,
+    tier,
+    modules,
+    clubName,
+    dateStr,
+    validUntilStr,
+  } = params;
   const latest = quote.versions[quote.versions.length - 1];
   const p1 = createA4Canvas();
   const { ctx, width, height } = p1;
@@ -500,38 +566,38 @@ function buildOnePageProposal(params: {
   drawPageHeader(ctx, width, logo, clubName, validUntilStr);
 
   // Kompakt Kapak Şeridi
-  let y = 138;
-  const heroH = 176;
+  let y = 130;
+  const heroH = 152;
   fillRoundedRect(ctx, marginX, y, contentW, heroH, 14, BRAND_NAVY);
   ctx.fillStyle = BRAND_LIME;
-  ctx.fillRect(marginX + 32, y + 26, 48, 5);
+  ctx.fillRect(marginX + 32, y + 22, 48, 5);
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = `700 30px ${FONT_SANS}`;
-  ctx.fillText(clubName, marginX + 32, y + 72);
+  ctx.font = `700 28px ${FONT_SANS}`;
+  ctx.fillText(clubName, marginX + 32, y + 64);
 
   ctx.fillStyle = BRAND_LIME;
-  ctx.font = `700 19px ${FONT_SANS}`;
-  ctx.fillText(quote.templateName, marginX + 32, y + 106);
+  ctx.font = `700 18px ${FONT_SANS}`;
+  ctx.fillText(quote.templateName, marginX + 32, y + 96);
 
   ctx.fillStyle = '#cbd5e1';
   ctx.font = `400 14px ${FONT_SANS}`;
   ctx.fillText(
     'Aidat takibini otomatikleştirin; yoklama, dijital karne ve veli iletişimini tek panelden yönetin.',
     marginX + 32,
-    y + 142
+    y + 128
   );
 
   // Orta 2 Sütun: Sol = Kulüp & Yetkili, Sağ = 3 Net Fayda
-  y += heroH + 26;
+  y += heroH + 18;
   const colW = (contentW - 22) / 2;
-  const midH = 248;
+  const midH = 224;
 
   // Sol kutu
   fillRoundedRect(ctx, marginX, y, colW, midH, 12, '#ffffff', BRAND_BORDER, 1.5);
   ctx.fillStyle = BRAND_NAVY;
   ctx.font = `700 16px ${FONT_SANS}`;
-  ctx.fillText('Kulüp ve Teklif Özeti', marginX + 22, y + 34);
+  ctx.fillText('Kulüp ve Teklif Özeti', marginX + 22, y + 32);
 
   const isYearly = latest.billingCycle === 'yillik';
   const metaRows: Array<[string, string]> = [
@@ -541,7 +607,7 @@ function buildOnePageProposal(params: {
     ['Geçerlilik', `${dateStr} → ${validUntilStr} (${quote.validityDays} gün)`],
     ['Paket & Plan', `${pkg?.name ?? 'Sadece Ek Modüller'} (${isYearly ? 'Yıllık Peşin' : 'Aylık'})`],
   ];
-  let my = y + 66;
+  let my = y + 62;
   metaRows.forEach(([k, v]) => {
     ctx.fillStyle = BRAND_MUTED;
     ctx.font = `500 13px ${FONT_SANS}`;
@@ -550,7 +616,7 @@ function buildOnePageProposal(params: {
     ctx.font = `600 13px ${FONT_SANS}`;
     const lines = wrapLines(ctx, v, colW - 130).slice(0, 1);
     ctx.fillText(lines[0], marginX + 112, my);
-    my += 34;
+    my += 31;
   });
 
   // Sağ kutu: 3 Net Fayda
@@ -558,43 +624,43 @@ function buildOnePageProposal(params: {
   fillRoundedRect(ctx, rx, y, colW, midH, 12, BRAND_SLATE_BG, BRAND_BORDER, 1.5);
   ctx.fillStyle = BRAND_NAVY;
   ctx.font = `700 16px ${FONT_SANS}`;
-  ctx.fillText('Kulübünüze 3 Somut Katkısı', rx + 22, y + 34);
+  ctx.fillText('Kulübünüze 3 Somut Katkısı', rx + 22, y + 32);
 
   const quickBenefits = [
     ['1. Otomatik Aidat', 'Velilere WhatsApp/SMS ödeme linki gider; gecikmeler azalır.'],
     ['2. Cepten Yoklama & Karne', 'Antrenör sahadan yoklama alır, veliye gelişim karnesi ulaşır.'],
     ['3. Aynı Hafta Kurulum', 'Mevcut Excel listenizle ek cihaz olmadan hemen başlarsınız.'],
   ];
-  let qy = y + 70;
+  let qy = y + 64;
   quickBenefits.forEach(([t, d]) => {
     fillRoundedRect(ctx, rx + 22, qy - 12, 8, 8, 4, BRAND_BLUE);
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `700 14px ${FONT_SANS}`;
     ctx.fillText(t, rx + 40, qy - 4);
     ctx.fillStyle = BRAND_BODY;
-    ctx.font = `400 13px ${FONT_SANS}`;
+    ctx.font = `400 12.5px ${FONT_SANS}`;
     wrapLines(ctx, d, colW - 62)
       .slice(0, 2)
-      .forEach((l, i) => ctx.fillText(l, rx + 40, qy + 16 + i * 18));
-    qy += 58;
+      .forEach((l, i) => ctx.fillText(l, rx + 40, qy + 14 + i * 17));
+    qy += 52;
   });
 
   // Fiyat Kalemleri Tablosu (Özet ve sade)
-  y += midH + 26;
-  fillRoundedRect(ctx, marginX, y, contentW, 44, 8, BRAND_NAVY);
+  y += midH + 18;
+  fillRoundedRect(ctx, marginX, y, contentW, 42, 8, BRAND_NAVY);
   ctx.fillStyle = '#ffffff';
   ctx.font = `600 14px ${FONT_SANS}`;
-  ctx.fillText('Kapsam Kalemi', marginX + 20, y + 27);
-  ctx.fillText('Detay', marginX + 460, y + 27);
+  ctx.fillText('Kapsam Kalemi', marginX + 20, y + 26);
+  ctx.fillText('Detay', marginX + 460, y + 26);
   ctx.textAlign = 'right';
   ctx.fillStyle = BRAND_LIME;
   ctx.fillText(
     isYearly ? 'Yıllık Peşin (KDV Hariç)' : 'Aylık Tutar (KDV Hariç)',
     width - marginX - 20,
-    y + 27
+    y + 26
   );
   ctx.textAlign = 'left';
-  y += 44;
+  y += 42;
 
   const moduleNames = latest.selectedModules
     .map((k) => {
@@ -638,35 +704,36 @@ function buildOnePageProposal(params: {
 
   tableRows.forEach(([title, scope, price], idx) => {
     ctx.fillStyle = idx % 2 === 0 ? '#ffffff' : BRAND_SLATE_BG;
-    ctx.fillRect(marginX, y, contentW, 48);
+    ctx.fillRect(marginX, y, contentW, 44);
     ctx.strokeStyle = BRAND_BORDER;
-    ctx.strokeRect(marginX, y, contentW, 48);
+    ctx.strokeRect(marginX, y, contentW, 44);
 
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `600 14px ${FONT_SANS}`;
-    ctx.fillText(title, marginX + 20, y + 29);
+    ctx.fillText(title, marginX + 20, y + 27);
     ctx.fillStyle = BRAND_MUTED;
     ctx.font = `400 13px ${FONT_SANS}`;
-    ctx.fillText(scope, marginX + 460, y + 29);
+    ctx.fillText(scope, marginX + 460, y + 27);
     ctx.textAlign = 'right';
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `600 14px ${FONT_SANS}`;
-    ctx.fillText(price, width - marginX - 20, y + 29);
+    ctx.fillText(price, width - marginX - 20, y + 27);
     ctx.textAlign = 'left';
-    y += 48;
+    y += 44;
   });
 
   // Fiyat Özeti & Koşullar
-  y += 24;
+  y += 18;
   drawSummaryAndRulesBlock(ctx, marginX, width, y, quote, validUntilStr);
 
   // Dijital Onay & İmzalar
-  y += 304;
+  y += 298;
   drawDigitalApprovalBanner(ctx, marginX, contentW, y, quote.digitalApprovalToken);
 
-  y += 98;
-  drawSignaturePair(ctx, marginX, contentW, y, 168, clubName, owner, contact);
+  y += 90;
+  drawSignaturePair(ctx, marginX, contentW, y, 152, clubName, owner, contact);
 
+  drawBranchesStrip(ctx, width, height, branchesStrip);
   drawPageFooter(ctx, width, height, clubName, dateStr);
   return [p1];
 }
@@ -676,6 +743,7 @@ function buildOnePageProposal(params: {
 // ---------------------------------------------------------------------------
 function buildTwoPageProposal(params: {
   logo: HTMLImageElement | null;
+  branchesStrip: HTMLImageElement | null;
   quote: Quote;
   request?: QuoteRequest;
   club?: Club;
@@ -690,6 +758,7 @@ function buildTwoPageProposal(params: {
 }): PageCanvas[] {
   const {
     logo,
+    branchesStrip,
     quote,
     request,
     club,
@@ -713,19 +782,19 @@ function buildTwoPageProposal(params: {
 
     drawPageHeader(ctx, width, logo, clubName, validUntilStr);
 
-    let y = 142;
-    const heroH = 212;
+    let y = 136;
+    const heroH = 188;
     fillRoundedRect(ctx, marginX, y, contentW, heroH, 14, BRAND_NAVY);
     ctx.fillStyle = BRAND_LIME;
-    ctx.fillRect(marginX + 36, y + 28, 50, 5);
+    ctx.fillRect(marginX + 36, y + 24, 50, 5);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `700 32px ${FONT_SANS}`;
-    ctx.fillText(clubName, marginX + 36, y + 78);
+    ctx.font = `700 30px ${FONT_SANS}`;
+    ctx.fillText(clubName, marginX + 36, y + 70);
 
     ctx.fillStyle = BRAND_LIME;
-    ctx.font = `700 20px ${FONT_SANS}`;
-    ctx.fillText(quote.templateName, marginX + 36, y + 114);
+    ctx.font = `700 19px ${FONT_SANS}`;
+    ctx.fillText(quote.templateName, marginX + 36, y + 104);
 
     ctx.fillStyle = '#cbd5e1';
     ctx.font = `400 15px ${FONT_SANS}`;
@@ -735,15 +804,15 @@ function buildTwoPageProposal(params: {
       contentW - 72
     )
       .slice(0, 2)
-      .forEach((line, i) => ctx.fillText(line, marginX + 36, y + 152 + i * 22));
+      .forEach((line, i) => ctx.fillText(line, marginX + 36, y + 138 + i * 22));
 
     // Kulüp ve Talep Özeti (4 temiz satır)
-    y += heroH + 34;
+    y += heroH + 28;
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `700 18px ${FONT_SANS}`;
     ctx.fillText('Kulüp ve Teklif Bilgileri', marginX, y);
-    y += 14;
-    fillRoundedRect(ctx, marginX, y, contentW, 152, 10, '#ffffff', BRAND_BORDER, 1.5);
+    y += 12;
+    fillRoundedRect(ctx, marginX, y, contentW, 144, 10, '#ffffff', BRAND_BORDER, 1.5);
 
     const rows: Array<[string, string]> = [
       ['Teklif Sunulan Kurum', `${clubName} (${club?.type ?? 'Spor Kulübü'} · ${club?.city ?? '—'})`],
@@ -751,13 +820,13 @@ function buildTwoPageProposal(params: {
       ['Kulüp Yetkilisi & Kapsam', `${contact?.fullName ?? '—'} (${contact?.roleTitle ?? 'Yetkili'}) · ${request?.title ?? pkg?.name ?? 'Sadece Ek Modüller'}`],
       ['Hazırlayan & Geçerlilik', `${owner?.name ?? 'SportsFly Ekibi'} · ${dateStr} — Son Geçerlilik: ${validUntilStr}`],
     ];
-    let ry = y + 34;
+    let ry = y + 32;
     rows.forEach(([k, v], idx) => {
       if (idx > 0) {
         ctx.strokeStyle = BRAND_BORDER;
         ctx.beginPath();
-        ctx.moveTo(marginX + 20, ry - 22);
-        ctx.lineTo(width - marginX - 20, ry - 22);
+        ctx.moveTo(marginX + 20, ry - 20);
+        ctx.lineTo(width - marginX - 20, ry - 20);
         ctx.stroke();
       }
       ctx.fillStyle = BRAND_MUTED;
@@ -766,18 +835,18 @@ function buildTwoPageProposal(params: {
       ctx.fillStyle = BRAND_NAVY;
       ctx.font = `600 14px ${FONT_SANS}`;
       ctx.fillText(v, marginX + 260, ry);
-      ry += 35;
+      ry += 33;
     });
 
     // SportsFly ile Neler Değişir? (3 Kart)
-    y += 184;
+    y += 168;
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `700 18px ${FONT_SANS}`;
     ctx.fillText('SportsFly ile Kulübünüzde Neler Değişir?', marginX, y);
-    y += 18;
+    y += 14;
 
     const benW = (contentW - 32) / 3;
-    const benH = 228;
+    const benH = 212;
     const benefits = [
       {
         tag: 'OTOMATİK AİDAT',
@@ -819,17 +888,17 @@ function buildTwoPageProposal(params: {
     });
 
     // Seçilen Paket Kapsamı ve Eklenen Akıllı Modüller
-    y += benH + 34;
+    y += benH + 26;
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `700 18px ${FONT_SANS}`;
     ctx.fillText(`Seçilen Kapsam: ${pkg?.name ?? 'Sadece Ek Modüller'}`, marginX, y);
-    y += 18;
+    y += 14;
 
     let addonStartY = y;
     if (pkg) {
       const pkgFeatures = pkg.features ?? ['Temel kulüp yönetim ve tahsilat altyapısı'];
       const featRows = Math.ceil(pkgFeatures.length / 2);
-      const pkgBoxH = 82 + featRows * 30;
+      const pkgBoxH = 78 + featRows * 28;
       fillRoundedRect(ctx, marginX, y, contentW, pkgBoxH, 10, BRAND_SLATE_BG, BRAND_BORDER, 1.5);
 
       ctx.fillStyle = BRAND_NAVY;
@@ -919,6 +988,7 @@ function buildTwoPageProposal(params: {
       });
     }
 
+    drawBranchesStrip(ctx, width, height, branchesStrip);
     drawPageFooter(ctx, width, height, clubName, dateStr);
   }
 
@@ -1071,12 +1141,13 @@ function buildTwoPageProposal(params: {
     });
 
     // Dijital Onay + İmzalar
-    y += stepH + 34;
+    y += stepH + 30;
     drawDigitalApprovalBanner(ctx, marginX, contentW, y, quote.digitalApprovalToken);
 
-    y += 106;
-    drawSignaturePair(ctx, marginX, contentW, y, 184, clubName, owner, contact);
+    y += 98;
+    drawSignaturePair(ctx, marginX, contentW, y, 168, clubName, owner, contact);
 
+    drawBranchesStrip(ctx, width, height, branchesStrip);
     drawPageFooter(ctx, width, height, clubName, dateStr);
   }
 
@@ -1088,6 +1159,7 @@ function buildTwoPageProposal(params: {
 // ---------------------------------------------------------------------------
 function buildThreePageProposal(params: {
   logo: HTMLImageElement | null;
+  branchesStrip: HTMLImageElement | null;
   quote: Quote;
   request?: QuoteRequest;
   club?: Club;
@@ -1102,6 +1174,7 @@ function buildThreePageProposal(params: {
 }): PageCanvas[] {
   const {
     logo,
+    branchesStrip,
     quote,
     request,
     club,
@@ -1278,6 +1351,7 @@ function buildThreePageProposal(params: {
       ctx.fillText(k.label, kx + 20, y + 63);
     });
 
+    drawBranchesStrip(ctx, width, height, branchesStrip);
     drawPageFooter(ctx, width, height, clubName, dateStr);
   }
 
@@ -1545,6 +1619,7 @@ function buildThreePageProposal(params: {
       y += 44;
     });
 
+    drawBranchesStrip(ctx, width, height, branchesStrip);
     drawPageFooter(ctx, width, height, clubName, dateStr);
   }
 
@@ -1558,7 +1633,7 @@ function buildThreePageProposal(params: {
     drawPageHeader(ctx, width, logo, clubName, validUntilStr);
 
     const isYearly = latest.billingCycle === 'yillik';
-    let y = 164;
+    let y = 152;
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `700 26px ${FONT_SANS}`;
     ctx.fillText('Seçilen Kapsam, Fiyatlandırma ve Onay', marginX, y);
@@ -1658,15 +1733,15 @@ function buildThreePageProposal(params: {
       y += 48;
     });
 
-    y += 24;
+    y += 18;
     drawSummaryAndRulesBlock(ctx, marginX, width, y, quote, validUntilStr);
 
     // 5 Günde Canlıya Geçiş (2x2 kompakt ızgara)
-    y += 306;
+    y += 300;
     ctx.fillStyle = BRAND_NAVY;
     ctx.font = `700 18px ${FONT_SANS}`;
     ctx.fillText('5 Günde Canlıya Geçiş Takvimi', marginX, y);
-    y += 16;
+    y += 14;
 
     const steps = [
       ['1. GÜN', 'Veri Aktarımı & Kurulum', 'Mevcut Excel sporcu ve grup listeniz 3 dakikada aktarılır; şubeleriniz tanımlanır.'],
@@ -1675,33 +1750,33 @@ function buildThreePageProposal(params: {
       ['5. GÜN', 'Canlı Yayın', 'Velilere dijital giriş bağlantısı gönderilir; aidat, yoklama ve karne akışı başlar.'],
     ];
     const stW = (contentW - 20) / 2;
-    const stH = 98;
+    const stH = 90;
     steps.forEach(([badge, stTitle, stDesc], idx) => {
       const col = idx % 2;
       const row = Math.floor(idx / 2);
       const sx = marginX + col * (stW + 20);
-      const sy = y + row * (stH + 14);
+      const sy = y + row * (stH + 12);
       fillRoundedRect(ctx, sx, sy, stW, stH, 10, BRAND_SLATE_BG, BRAND_BORDER, 1.5);
-      fillRoundedRect(ctx, sx + 14, sy + 14, 78, 24, 6, BRAND_NAVY);
+      fillRoundedRect(ctx, sx + 14, sy + 12, 78, 22, 6, BRAND_NAVY);
       ctx.fillStyle = BRAND_LIME;
       ctx.font = `700 11px ${FONT_SANS}`;
       ctx.textAlign = 'center';
-      ctx.fillText(badge, sx + 53, sy + 30);
+      ctx.fillText(badge, sx + 53, sy + 27);
       ctx.textAlign = 'left';
 
       ctx.fillStyle = BRAND_NAVY;
       ctx.font = `700 15px ${FONT_SANS}`;
-      ctx.fillText(stTitle, sx + 104, sy + 31);
+      ctx.fillText(stTitle, sx + 104, sy + 28);
 
       ctx.fillStyle = BRAND_BODY;
-      ctx.font = `400 13px ${FONT_SANS}`;
+      ctx.font = `400 12.5px ${FONT_SANS}`;
       wrapLines(ctx, stDesc, stW - 28)
         .slice(0, 2)
-        .forEach((l, li) => ctx.fillText(l, sx + 14, sy + 58 + li * 18));
+        .forEach((l, li) => ctx.fillText(l, sx + 14, sy + 52 + li * 17));
     });
 
     // Kısa Koşul & KVKK Notu
-    y += stH * 2 + 38;
+    y += stH * 2 + 30;
     ctx.fillStyle = BRAND_BODY;
     ctx.font = `400 13px ${FONT_SANS}`;
     const termsShort = `${latest.termsNote} Tüm iletişim ve kulüp kayıtları 6698 sayılı KVKK kapsamında açık rıza ve rol bazlı yetkilendirme ile güvenle saklanır.`;
@@ -1709,16 +1784,17 @@ function buildThreePageProposal(params: {
       .slice(0, 3)
       .forEach((l) => {
         ctx.fillText(l, marginX, y);
-        y += 20;
+        y += 19;
       });
 
     // Dijital Onay + İmzalar
-    y += 14;
+    y += 10;
     drawDigitalApprovalBanner(ctx, marginX, contentW, y, quote.digitalApprovalToken);
 
-    y += 96;
-    drawSignaturePair(ctx, marginX, contentW, y, 174, clubName, owner, contact);
+    y += 88;
+    drawSignaturePair(ctx, marginX, contentW, y, 152, clubName, owner, contact);
 
+    drawBranchesStrip(ctx, width, height, branchesStrip);
     drawPageFooter(ctx, width, height, clubName, dateStr);
   }
 
@@ -1758,7 +1834,10 @@ export async function generateProposalPdf(params: {
     }
   }
 
-  const logo = await loadImage(SPORTSFLY_LOGO_URL);
+  const [logo, branchesStrip] = await Promise.all([
+    loadImage(SPORTSFLY_LOGO_URL),
+    loadImage(SPORTSFLY_BRANCHES_STRIP_URL),
+  ]);
   const latest = quote.versions[quote.versions.length - 1];
   const dateStr = formatDateTR(latest.createdAt);
   const validUntilStr = formatDateTR(quote.validUntil);
@@ -1768,6 +1847,7 @@ export async function generateProposalPdf(params: {
   if (format === '1-sayfa') {
     pages = buildOnePageProposal({
       logo,
+      branchesStrip,
       quote,
       club,
       contact,
@@ -1782,6 +1862,7 @@ export async function generateProposalPdf(params: {
   } else if (format === '3-sayfa') {
     pages = buildThreePageProposal({
       logo,
+      branchesStrip,
       quote,
       request,
       club,
@@ -1797,6 +1878,7 @@ export async function generateProposalPdf(params: {
   } else {
     pages = buildTwoPageProposal({
       logo,
+      branchesStrip,
       quote,
       request,
       club,

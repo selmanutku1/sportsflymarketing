@@ -9,6 +9,21 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
+      {
+        name: 'resolve-opengraph-origin',
+        transformIndexHtml(html: string): string {
+          const rawOrigin =
+            process.env.VITE_PUBLIC_APP_URL ||
+            (process.env.VERCEL_PROJECT_PRODUCTION_URL
+              ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+              : '');
+          if (!rawOrigin || rawOrigin.includes('ais-dev-')) {
+            return html;
+          }
+          const normalizedOrigin = rawOrigin.replace(/\/+$/, '');
+          return html.replaceAll('https://sportsflymarketing-d8gu.vercel.app', normalizedOrigin);
+        },
+      },
       // Copies src/assets into dist/ so root-relative URLs like
       // "/src/assets/images/..." (e.g. generate_image output) still resolve
       // in production builds. Do not remove.
