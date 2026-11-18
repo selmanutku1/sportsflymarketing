@@ -4,7 +4,7 @@ import './index.css';
 
 if (typeof window !== 'undefined') {
   const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
-  const ogImageUrl = `${window.location.origin}/og-image.jpg`;
+  const ogImageUrl = `${window.location.origin}/assets/aistudio/Ads_z_Tasar_m__3__63e35bf9.png`;
 
   const setMetaContent = (selector: string, content: string) => {
     const el = document.querySelector<HTMLMetaElement>(selector);
