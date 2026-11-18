@@ -4,7 +4,7 @@ import './index.css';
 
 if (typeof window !== 'undefined') {
   const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
-  const ogImageUrl = `${window.location.origin}/assets/aistudio/images__1__e22ba1d6.jpg`;
+  const ogImageUrl = `${window.location.origin}/og-image.jpg`;
 
   const setMetaContent = (selector: string, content: string) => {
     const el = document.querySelector<HTMLMetaElement>(selector);
