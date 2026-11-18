@@ -13,6 +13,7 @@ if (typeof window !== 'undefined') {
 
   setMetaContent('meta[property="og:url"]', canonicalUrl);
   setMetaContent('meta[property="og:image"]', ogImageUrl);
+  setMetaContent('meta[property="og:image:secure_url"]', ogImageUrl);
   setMetaContent('meta[name="twitter:image"]', ogImageUrl);
 
   const canonicalLink = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
