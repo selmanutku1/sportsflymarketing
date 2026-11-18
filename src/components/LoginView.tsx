@@ -124,10 +124,6 @@ export function LoginView({ darkMode, onToggleTheme, onLogin }: LoginViewProps) 
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </form>
-
-          <p className="pt-4 border-t border-[var(--border-hairline)] text-[11px] text-[var(--text-muted)] leading-relaxed">
-            Geçiş kodunuzu bilmiyorsanız Süper Admin ile iletişime geçin.
-          </p>
         </div>
       </main>
 

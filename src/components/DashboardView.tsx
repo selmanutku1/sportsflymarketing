@@ -3,12 +3,14 @@ import {
   AlertTriangle,
   ArrowRight,
   Building2,
+  CalendarClock,
   Check,
   CheckCircle2,
   FileCheck2,
   Pencil,
   Plus,
   ShieldAlert,
+  Target,
 } from 'lucide-react';
 import type {
   Activity,
@@ -97,10 +99,17 @@ export function DashboardView({
   const [opsTab, setOpsTab] = useState<'tasks' | 'activities'>('tasks');
   const [matrixTab, setMatrixTab] = useState<'quotes' | 'clubs'>('quotes');
 
+  const [dailyQuoteTarget, setDailyQuoteTarget] = useState(3);
+  const [dailyVolumeTarget, setDailyVolumeTarget] = useState(150000);
+  const [editingTargets, setEditingTargets] = useState(false);
+
   const getLatest = (q: Quote) => q.versions[q.versions.length - 1];
   const getClub = (clubId: string) => clubs.find((c) => c.id === clubId);
   const getClubName = (clubId: string) => getClub(clubId)?.name ?? 'Kulüp';
   const getUserName = (userId: string) => users.find((u) => u.id === userId)?.name ?? 'Atanmamış';
+
+  const todayDatePrefix = TODAY_ISO.slice(0, 10);
+  const realTodayPrefix = new Date().toISOString().slice(0, 10);
 
   const filteredQuotes = useMemo(() => {
     return quotes.filter((q) => {
@@ -115,6 +124,38 @@ export function DashboardView({
       .filter((t) => !t.completed && (scopeFilter === 'all' || t.assigneeId === currentUser.id))
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   }, [tasks, scopeFilter, currentUser.id]);
+
+  const todaysMeetings = useMemo(() => {
+    return activities
+      .filter((a) => {
+        const isMeeting = a.type === 'Toplantı' || a.type === 'Demo';
+        const isToday =
+          a.createdAt.startsWith(todayDatePrefix) || a.createdAt.startsWith(realTodayPrefix);
+        const inScope = scopeFilter === 'all' || a.createdById === currentUser.id;
+        return isMeeting && isToday && inScope;
+      })
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }, [activities, todayDatePrefix, realTodayPrefix, scopeFilter, currentUser.id]);
+
+  const recentlyUpdatedQuotes = useMemo(() => {
+    return [...filteredQuotes]
+      .sort(
+        (a, b) =>
+          new Date(getLatest(b).createdAt).getTime() - new Date(getLatest(a).createdAt).getTime()
+      )
+      .slice(0, 3);
+  }, [filteredQuotes]);
+
+  const todayTasksStats = useMemo(() => {
+    const todayScoped = tasks.filter((t) => {
+      const dueToday =
+        t.dueDate.startsWith(todayDatePrefix) || t.dueDate.startsWith(realTodayPrefix);
+      const inScope = scopeFilter === 'all' || t.assigneeId === currentUser.id;
+      return dueToday && inScope;
+    });
+    const completed = todayScoped.filter((t) => t.completed).length;
+    return { total: todayScoped.length, completed };
+  }, [tasks, todayDatePrefix, realTodayPrefix, scopeFilter, currentUser.id]);
 
   const recentActivities = useMemo(() => {
     return [...activities]
@@ -516,6 +557,299 @@ export function DashboardView({
           <div className="mt-4 pt-3 border-t border-[var(--border-hairline)] flex items-center justify-between text-[11px] text-[var(--text-muted)] tabular-nums">
             <span>{contacts.length} yetkili kişi</span>
             <span>%{kvkkConsentRate} KVKK onaylı</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Satış Operasyon Özeti Widget'ı */}
+      <section
+        aria-label="Satış Operasyon Özeti"
+        className="rounded-[10px] border border-[var(--border-hairline)] bg-[var(--bg-surface)] overflow-hidden"
+      >
+        <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--border-hairline)] flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+              Satış Operasyon Özeti
+            </h2>
+            <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+              {scopeFilter === 'mine' ? currentUser.name : 'Satış Ekibi'} · Günlük hedefler, bugünkü toplantılar ve son güncellenen teklifler
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setEditingTargets((v) => !v)}
+              className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:underline whitespace-nowrap"
+            >
+              {editingTargets ? 'Hedefi Kaydet' : 'Hedefleri Düzenle'}
+            </button>
+            {permission.canCreateOrEditQuotes && (
+              <button
+                type="button"
+                onClick={onNewQuote}
+                className="inline-flex items-center gap-1 text-xs font-medium text-[var(--accent)] hover:underline whitespace-nowrap"
+              >
+                <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Yeni Teklif</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-[var(--border-hairline)]">
+          {/* 1. Günlük Satış Hedefleri */}
+          <div className="p-4 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                <Target className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" aria-hidden="true" />
+                <span>Günlük Satış Hedefleri</span>
+              </div>
+              <span className="text-[11px] text-[var(--text-muted)] tabular-nums">
+                {formatDateTR(TODAY_ISO)}
+              </span>
+            </div>
+
+            {editingTargets && (
+              <div className="grid grid-cols-2 gap-2.5 pb-3 border-b border-[var(--border-hairline)] text-xs">
+                <div>
+                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">
+                    Teklif Adedi Hedefi
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={dailyQuoteTarget}
+                    onChange={(e) => setDailyQuoteTarget(Math.max(1, Number(e.target.value)))}
+                    className="w-full px-2.5 py-1.5 rounded-[6px] border border-[var(--border-hairline)] bg-[var(--bg-canvas)] tabular-nums"
+                  />
+                </div>
+                {permission.canViewPricingAndContracts && (
+                  <div>
+                    <label className="block text-[11px] text-[var(--text-muted)] mb-1">
+                      Hacim Hedefi (₺)
+                    </label>
+                    <input
+                      type="number"
+                      min={10000}
+                      step={10000}
+                      value={dailyVolumeTarget}
+                      onChange={(e) => setDailyVolumeTarget(Math.max(10000, Number(e.target.value)))}
+                      className="w-full px-2.5 py-1.5 rounded-[6px] border border-[var(--border-hairline)] bg-[var(--bg-canvas)] tabular-nums"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(() => {
+              const effectiveQuoteTarget =
+                scopeFilter === 'mine' ? Math.max(1, Math.min(dailyQuoteTarget, 2)) : dailyQuoteTarget;
+              const quoteProgressPct = Math.min(
+                100,
+                Math.round((activeQuotes.length / Math.max(1, effectiveQuoteTarget)) * 100)
+              );
+              const volumeProgressPct = Math.min(
+                100,
+                Math.round((activeQuoteVolume / Math.max(1, dailyVolumeTarget)) * 100)
+              );
+              const taskPct =
+                todayTasksStats.total > 0
+                  ? Math.round((todayTasksStats.completed / todayTasksStats.total) * 100)
+                  : 100;
+
+              return (
+                <div className="space-y-3.5 text-xs">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[var(--text-secondary)]">Aktif Teklif Hedefi</span>
+                      <span className="font-semibold text-[var(--text-primary)] tabular-nums">
+                        {activeQuotes.length} / {effectiveQuoteTarget} teklif (%{quoteProgressPct})
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-[4px] bg-[var(--bg-subtle)] overflow-hidden">
+                      <div
+                        className="h-full rounded-[4px] bg-[var(--accent)] transition-all"
+                        style={{ width: `${quoteProgressPct}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {permission.canViewPricingAndContracts && (
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[var(--text-secondary)]">Günlük Pipeline Hacmi</span>
+                        <span className="font-semibold text-[var(--text-primary)] tabular-nums">
+                          {formatTRY(activeQuoteVolume, false)} / {formatTRY(dailyVolumeTarget, false)}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-[4px] bg-[var(--bg-subtle)] overflow-hidden">
+                        <div
+                          className="h-full rounded-[4px] bg-emerald-600 transition-all"
+                          style={{ width: `${volumeProgressPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[var(--text-secondary)]">Bugünkü Takip Görevleri</span>
+                      <span className="font-semibold text-[var(--text-primary)] tabular-nums">
+                        {todayTasksStats.completed} / {todayTasksStats.total} tamamlandı
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-[4px] bg-[var(--bg-subtle)] overflow-hidden">
+                      <div
+                        className="h-full rounded-[4px] bg-amber-500 transition-all"
+                        style={{ width: `${taskPct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* 2. Bugünkü Toplantılar */}
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                  <CalendarClock className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" aria-hidden="true" />
+                  <span>Bugünkü Toplantılar</span>
+                </div>
+                <span className="text-[11px] text-[var(--text-muted)] tabular-nums">
+                  {todaysMeetings.length} görüşme
+                </span>
+              </div>
+
+              {todaysMeetings.length === 0 ? (
+                <p className="text-xs text-[var(--text-muted)] py-3">
+                  Bugün için planlanmış toplantı veya demo görünmüyor.
+                </p>
+              ) : (
+                <ul className="divide-y divide-[var(--border-hairline)]">
+                  {todaysMeetings.map((meeting) => (
+                    <li key={meeting.id} className="py-2.5 first:pt-0 last:pb-0">
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-muted)]">
+                        <span className="font-mono-num font-semibold text-[var(--accent)]">
+                          {meeting.createdAt.slice(11, 16)} · {meeting.type}
+                        </span>
+                        <span className="truncate">{getUserName(meeting.createdById)}</span>
+                      </div>
+                      <div className="mt-0.5 text-xs font-medium text-[var(--text-primary)] truncate">
+                        {getClubName(meeting.clubId)}
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
+                        {meeting.summary}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-[var(--border-hairline)] flex justify-end">
+              <button
+                type="button"
+                onClick={() => onNavigate('tasks')}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline whitespace-nowrap"
+              >
+                <span>Takvim ve Görevlere Git</span>
+                <ArrowRight className="w-3 h-3" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          {/* 3. En Son Güncellenen Teklifler */}
+          <div className="p-4 sm:p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)]">
+                  <FileCheck2 className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" aria-hidden="true" />
+                  <span>Son Güncellenen Teklifler</span>
+                </div>
+                <span className="text-[11px] text-[var(--text-muted)] tabular-nums">
+                  Son {recentlyUpdatedQuotes.length} kayıt
+                </span>
+              </div>
+
+              {recentlyUpdatedQuotes.length === 0 ? (
+                <p className="text-xs text-[var(--text-muted)] py-3">
+                  Henüz güncellenmiş teklif bulunmuyor.
+                </p>
+              ) : (
+                <ul className="divide-y divide-[var(--border-hairline)]">
+                  {recentlyUpdatedQuotes.map((quote) => {
+                    const latest = getLatest(quote);
+                    return (
+                      <li key={quote.id} className="py-2.5 first:pt-0 last:pb-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-xs font-medium text-[var(--text-primary)] truncate">
+                              {getClubName(quote.clubId)}
+                            </div>
+                            <div className="text-[11px] text-[var(--text-muted)] font-mono-num">
+                              {quote.quoteNumber} · v{quote.currentVersion} · {formatDateTR(latest.createdAt)}
+                            </div>
+                          </div>
+                          {permission.canViewPricingAndContracts && (
+                            <span className="text-xs font-semibold text-[var(--text-primary)] tabular-nums shrink-0">
+                              {formatTRY(latest.grandTotal, false)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1.5 flex items-center justify-between gap-2">
+                          <StatusText
+                            label={quote.status}
+                            tone={
+                              quote.status === 'Müşteri Onayladı'
+                                ? 'success'
+                                : quote.status === 'Onay Bekliyor' ||
+                                    quote.status === 'Revizyon Talep Edildi'
+                                  ? 'warning'
+                                  : quote.status === 'Gönderildi'
+                                    ? 'info'
+                                    : 'neutral'
+                            }
+                          />
+                          <div className="inline-flex items-center gap-2.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => onOpenProposalPreview(quote.id)}
+                              className="text-[11px] font-medium text-[var(--accent)] hover:underline whitespace-nowrap"
+                            >
+                              Önizle
+                            </button>
+                            {permission.canCreateOrEditQuotes && (
+                              <button
+                                type="button"
+                                onClick={() => onOpenQuoteBuilder(quote.id)}
+                                className="text-[11px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:underline whitespace-nowrap"
+                              >
+                                Düzenle
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-[var(--border-hairline)] flex justify-end">
+              <button
+                type="button"
+                onClick={onNavigateQuotes}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline whitespace-nowrap"
+              >
+                <span>Tüm Teklifleri Gör</span>
+                <ArrowRight className="w-3 h-3" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       </section>

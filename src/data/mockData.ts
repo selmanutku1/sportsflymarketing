@@ -758,6 +758,24 @@ export const INITIAL_STAGE_HISTORY: StageHistoryEntry[] = [
 
 export const INITIAL_ACTIVITIES: Activity[] = [
   {
+    id: 'act-5',
+    requestId: 'req-1',
+    clubId: 'clb-1',
+    type: 'Demo',
+    summary: 'Göztepe Basketbol Akademi yönetim kurulu ile canlı sistem ve tahsilat sunumu.',
+    createdById: 'usr-2',
+    createdAt: '2026-11-18T14:00:00.000Z',
+  },
+  {
+    id: 'act-6',
+    requestId: 'req-5',
+    clubId: 'clb-6',
+    type: 'Toplantı',
+    summary: 'Türkiye Tenis Bölge Eğitim Merkezi ile akreditasyon ve kongre kapsam toplantısı.',
+    createdById: 'usr-1',
+    createdAt: '2026-11-18T16:30:00.000Z',
+  },
+  {
     id: 'act-1',
     requestId: 'req-1',
     clubId: 'clb-1',
@@ -771,7 +789,7 @@ export const INITIAL_ACTIVITIES: Activity[] = [
     requestId: 'req-1',
     clubId: 'clb-1',
     type: 'Demo',
-    summary: 'Yönetim kurulu için 20.11.2026 tarihli canlı demo davetiye bağlantısı gönderildi.',
+    summary: 'Yönetim kurulu için canlı demo davetiye bağlantısı gönderildi.',
     createdById: 'usr-2',
     createdAt: '2026-11-16T15:30:00.000Z',
   },

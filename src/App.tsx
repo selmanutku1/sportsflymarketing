@@ -79,6 +79,14 @@ export default function App() {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
   const showToast = (message: string, tone: StatusTone = 'info') => {
     setToast({ message, tone });
   };
