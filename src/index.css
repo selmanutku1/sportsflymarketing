@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-canvas: #f7f9fc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #eff3f9;
+  --bg-hover: #e2e8f2;
+  --border-hairline: #e4e9f2;
+  --border-strong: #cbd5e1;
+
+  --text-primary: #091124;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  /* SportsFly Marka Renkleri (sportsfly.com.tr) */
+  --brand-navy: #091124;
+  --brand-lime: #b9f33d;
+  --brand-lime-hover: #a7e22b;
+  --brand-lime-fg: #091124;
+
+  --accent: #0b5fff;
+  --accent-hover: #004ce6;
+  --accent-soft: #eef4ff;
+  --accent-fg: #ffffff;
+
+  /* Semantik Durum Renkleri */
+  --status-success: #15803d;
+  --status-success-bg: #f0fdf4;
+  --status-warning: #b45309;
+  --status-warning-bg: #fffbeb;
+  --status-error: #b91c1c;
+  --status-error-bg: #fef2f2;
+  --status-info: #0b5fff;
+  --status-info-bg: #eef4ff;
+
+  --shadow-sm: 0 1px 2px 0 rgb(9 17 36 / 0.04);
+  --shadow-md: 0 6px 18px -4px rgb(9 17 36 / 0.08);
+}
+
+.dark {
+  --bg-canvas: #070d19;
+  --bg-surface: #0e1729;
+  --bg-subtle: #162138;
+  --bg-hover: #22304f;
+  --border-hairline: #1c2740;
+  --border-strong: #2d3c5c;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --brand-navy: #091124;
+  --brand-lime: #b9f33d;
+  --brand-lime-hover: #c6f75e;
+  --brand-lime-fg: #091124;
+
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-soft: #13254b;
+  --accent-fg: #ffffff;
+
+  --status-success: #4ade80;
+  --status-success-bg: #052e16;
+  --status-warning: #fbbf24;
+  --status-warning-bg: #451a03;
+  --status-error: #f87171;
+  --status-error-bg: #450a0a;
+  --status-info: #60a5fa;
+  --status-info-bg: #13254b;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 8px 20px -4px rgb(0 0 0 / 0.45);
+}
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-mono-num {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #091124 !important;
+  }
+}

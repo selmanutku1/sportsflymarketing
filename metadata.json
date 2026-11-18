@@ -1,0 +1,6 @@
+{
+  "name": "SportsFly CRM",
+  "description": "Spor kulüpleri ve spor okulları için B2B teklif talep ve müşteri ilişkileri yönetim paneli.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
